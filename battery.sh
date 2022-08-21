@@ -1,25 +1,19 @@
 #!/usr/bin/env bash
 
-#echo `pwd`
-username=$(/usr/bin/whoami)
-
-#echo $username
-pid=$(pgrep -u $username nautilus)
-
-if [ $pid ];then
-	#echo $pid
-	dbus=$(grep -z DBUS_SESSION_BUS_ADDRESS /proc/$pid/environ | sed 's/DBUS_SESSION_BUS_ADDRESS=//')
+export_dbus(){
+	dbus=`grep -zsh DBUS_SESSION_BUS_ADDRESS= /proc/*/environ | grep -zs guid | sed 's/DBUS_SESSION_BUS_ADDRESS=/\n/g' | tail -1 | tr -d '\0'`
 	#echo $dbus
 	export DBUS_SESSION_BUS_ADDRESS=$dbus
-fi
+}
 
+export_dbus
 #code
 battery_level=`cat /sys/class/power_supply/BAT1/capacity`
 status=`cat /sys/class/power_supply/BAT1/status`
 
 if [ $# == 1 ];then
 	if [ $1 == "login" ];then
-		if [ "$(ls ~/Software/Battery_alert/log/ | tail -1)" != "battery_`date '+%Y%m%d'`.log" ]; then
+		if [ "$(ls ~/Battery_alert/log/ | tail -1)" != "battery_`date '+%Y%m%d'`.log" ]; then
 			ln -sf ~/Battery_alert/log/battery_`date '+%Y%m%d'`.log ~/Battery_alert/battery.log
 			echo -e "\n<Log Created>" >> ~/Battery_alert/battery.log
 		fi
@@ -41,6 +35,6 @@ fi
 
 echo -e "\n"`date`"\nBattery-level:"$battery_level"%\nStatus:"$status"\n------------------------------------------" >> ~/Battery_alert/battery.log
 
-if [ ! $pid ];then
-	gnome-terminal -- bash -c "tail -5f ~/Software/Battery_alert/battery.log"
+if [ $(echo $dbus | wc -l) -lt 1 ];then
+	gnome-terminal -- bash -c "tail -5f ~/Battery_alert/battery.log"
 fi
