@@ -46,12 +46,12 @@ fi
 if [ $battery_level -ge 90 ]; then
 	if [ "$status" = "Charging" ]; then
 		/usr/bin/notify-send "Battery is high! Charging : ${battery_level}%" "Remove your Adapter"
-		echo -e "\n<Notify>" >> ~/Battery_alert/battery.log
+		echo -e "\n<Notify>\nMessage :- \nBattery is high! Charging : ${battery_level}%\nRemove your Adapter\n</Notify>" >> ~/Battery_alert/battery.log
 	fi
 elif [ $battery_level -le 70 ]; then
 	if [ "$status" = "Discharging" ]; then
 		/usr/bin/notify-send "Battery is low! Not Charging : ${battery_level}%" "Please pluggin your Adapter"
-	    	echo -e "\n<Notify>" >> ~/Battery_alert/battery.log
+	    	echo -e "\n<Notify>\nMessage :- \nBattery is low! Not Charging : ${battery_level}%\nPlease pluggin your Adapter\n<\nNotify>" >> ~/Battery_alert/battery.log
 	fi
 fi
 
