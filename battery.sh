@@ -30,32 +30,39 @@ login_setup(){
 
 }
 
+check_battery(){
+	#checks battery leve and provides custom notification accordingly
+	if [ $battery_level -ge 90 ]; then
+		if [ "$status" = "Charging" ]; then
+			/usr/bin/notify-send "Battery is high! Charging : ${battery_level}%" "Remove your Adapter"
+			echo -e "\n<Notify>\nMessage :- \nBattery is high! Charging : ${battery_level}%\nRemove your Adapter\n</Notify>" >> ~/Battery_alert/battery.log
+		fi
+	elif [ $battery_level -le 75 ]; then
+		if [ "$status" = "Discharging" ]; then
+			/usr/bin/notify-send "Battery is low! Not Charging : ${battery_level}%" "Please pluggin your Adapter"
+				echo -e "\n<Notify>\nMessage :- \nBattery is low! Not Charging : ${battery_level}%\nPlease pluggin your Adapter\n</Notify>" >> ~/Battery_alert/battery.log
+		fi
+	fi
+	echo -e "\n"`date`"\nBattery-level:"$battery_level"%\nStatus:"$status"\n------------------------------------------" >> ~/Battery_alert/battery.log
+}
+
 #This checks the no. of arguments passed to the program
 #No. of arguments must be 0 or 1
 #0 - the program check the battery percentage and give alert
 #1 - the only parameter is login - this check for the log file for current date if present appeds login time to the file, if not present it creates the file and appends login time to the file
 
-if [ $# == 1 ];then
+if [ $# = 1 ];then
 	if [ $1 == "login" ];then
 		login_setup
+		check_battery
 	fi
 elif [ $# -gt 1 ];then
 	echo "Invalid number of arguments"
-fi 
-
-if [ $battery_level -ge 90 ]; then
-	if [ "$status" = "Charging" ]; then
-		/usr/bin/notify-send "Battery is high! Charging : ${battery_level}%" "Remove your Adapter"
-		echo -e "\n<Notify>\nMessage :- \nBattery is high! Charging : ${battery_level}%\nRemove your Adapter\n</Notify>" >> ~/Battery_alert/battery.log
-	fi
-elif [ $battery_level -le 70 ]; then
-	if [ "$status" = "Discharging" ]; then
-		/usr/bin/notify-send "Battery is low! Not Charging : ${battery_level}%" "Please pluggin your Adapter"
-	    	echo -e "\n<Notify>\nMessage :- \nBattery is low! Not Charging : ${battery_level}%\nPlease pluggin your Adapter\n<\nNotify>" >> ~/Battery_alert/battery.log
-	fi
+elif [ $# = 0 ];then
+	check_battery
 fi
 
-echo -e "\n"`date`"\nBattery-level:"$battery_level"%\nStatus:"$status"\n------------------------------------------" >> ~/Battery_alert/battery.log
+#addition terminal pops up when the guid is not present
 
 if [ $(echo $dbus | wc -l) -lt 1 ];then
 	gnome-terminal -- bash -c "tail -5f ~/Battery_alert/battery.log"
