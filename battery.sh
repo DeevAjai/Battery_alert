@@ -66,7 +66,8 @@ read_configs(){
 	status=`cat /sys/class/power_supply/BAT1/status`
 }
 
-login_setup(){
+log_setup(){
+	
 	#Check for current days log file already exists
 	last_logfile=$(ls $log_path | tail -1)
 	current_logfile="battery_`date '+%Y%m%d'`.log"
@@ -75,14 +76,22 @@ login_setup(){
 	fi
 
 	if [ ! -h $log_file ];then
-		ln -sf $log_path$current_logfile $log_file
+		echo "Creating soft link for logfile"
+		ln -sf $current_logfile $log_file
 	fi
 
 	#Checks if the symbolic link is mappend to current log file, if not maps current file
 	if [ $(md5sum $log_path$current_logfile | cut -d ' ' -f 1) != $(md5sum $log_file | cut -d ' ' -f 1) ];then
-		ln -sf $log_path$current_logfile $log_file
+		ln -sf $current_logfile $log_file
 	fi
+
+}
+
+login_setup(){
 	
+	#calling log_setup to check for log validity
+	log_setup
+
 	#Appends the login time to the log file
 	echo -e "\n<Login> @ `date`" >> $log_file
 
@@ -101,7 +110,6 @@ check_battery(){
 				echo -e "\n<Notify>\nMessage :- \nBattery is low! Not Charging : ${battery_level}%\nPlease pluggin your Adapter\n</Notify>" >> $log_file
 		fi
 	fi
-	echo "Log file : "$log_file
 	echo -e "\n"`date`"\nBattery-level:"$battery_level"%\nStatus:"$status"\n------------------------------------------" >> $log_file
 }
 
@@ -111,6 +119,7 @@ check_battery(){
 #1 - the only parameter is login - this check for the log file for current date if present appeds login time to the file, if not present it creates the file and appends login time to the file
 
 read_configs
+log_setup
 
 if [ $# = 1 ];then
 	if [ $1 == "login" ];then
